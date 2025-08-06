@@ -1,87 +1,38 @@
 package main
 
 import (
-	"bufio"
-	"encoding/csv"
 	"fmt"
-	"os"
-	"strings"
+	"log"
+	"nfe/dados"
+	"nfe/model"
 )
 
 func main() {
-	clienteID := ObterClienteID()
-	fmt.Println("Procurando CNPJ para o Cliente ID:", clienteID)
+	// Caminho do CSV
+	caminhoclientes := "dados/csv/clientes.csv"
+	caminhopedidos := "dados/csv/pedidos.csv"
 
-	// Abre o CSV de Clientes 
-	file, err := os.Open("dados/clientes.csv")
+	// Carrega os dados do CSV para um slice de Clientes
+	clientes, err := dados.LoadCSV[model.Cliente](caminhoclientes)
 	if err != nil {
-		fmt.Println("Erro ao abrir o arquivo:", err)
-		return
+		log.Fatalf("Erro ao carregar clientes: %v", err)
 	}
-	defer file.Close()
 
-	reader := csv.NewReader(file)
-
-	// Lê o cabeçalho
-	header, err := reader.Read()
+	// Carrega os dados do CSV para um slice de Clientes
+	pedidos, err := dados.LoadCSV[model.Pedidos](caminhopedidos)
 	if err != nil {
-		fmt.Println("Erro ao ler o cabeçalho:", err)
-		return
-	}
-
-	// Encontra os índices das colunas "id" e "documento"
-	idIndex := -1
-	cnpjIndex := -1
-	nomeIndex := -1
-	for i, col := range header {
-		switch strings.ToLower(col) {
-		case "id":
-			idIndex = i
-		case "documento":
-			cnpjIndex = i
-		case "nome":
-			nomeIndex = i
-		}
-	}
-
-	if idIndex == -1 {
-		fmt.Println("Coluna 'id' não encontrada")
-		return
-	}
-
-	if cnpjIndex == -1 {
-		fmt.Println("Coluna 'documento' não encontrada")
-		return
-	}
-
-	if nomeIndex == -1 {
-		fmt.Println("Coluna 'documento' não encontrada")
-		return
+		log.Fatalf("Erro ao carregar clientes: %v", err)
 	}
 	
-	// Procura o clienteID
-	for {
-		record, err := reader.Read()
-		if err != nil {
-			break // EOF
-		}
-
-		if strings.TrimSpace(record[idIndex]) == clienteID {
-			cnpj := strings.TrimSpace(record[cnpjIndex])
-			nome := strings.TrimSpace(record[nomeIndex])
-			fmt.Println("CNPJ:", cnpj, "Nome:", nome)
-			return
-		}
+	// Imprime os clientes carregados
+	for i, cliente := range clientes {
+		fmt.Printf("Cliente %d: %+v\n", i+1, cliente)
+		fmt.Println("Cliente: ", cliente.Documento)
 	}
-
-	fmt.Println("Cliente ID não encontrado no arquivo.")
-}
-
-func ObterClienteID() string {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Print("Digite o Cliente ID: ")
-	clienteID, _ := reader.ReadString('\n')
-
-	return strings.TrimSpace(clienteID)
+	// Imprime os pedidos carregados
+	for i, pedido := range pedidos {
+		fmt.Printf("Pedido %d: %+v\n", i+1, pedido)
+		fmt.Println("Pedido : ", pedido.Situacao)
+	}
+	
 }
