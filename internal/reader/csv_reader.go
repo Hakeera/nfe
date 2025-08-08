@@ -1,5 +1,5 @@
-// Package dados
-package dados
+// Package load 
+package load 
 
 import (
 	"encoding/csv"
